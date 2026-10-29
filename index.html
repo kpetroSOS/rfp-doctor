@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFP 닥터 · 제안요청서 검토 도우미</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --ink: #1f2733;
+    --muted: #5d6878;
+    --line: #dde2ea;
+    --brand: #2f5bd3;
+    --brand-soft: #e8eefc;
+    --bad: #c62f2f;
+    --bad-soft: #fdecec;
+    --good: #1f8a4c;
+    --good-soft: #e7f6ed;
+    --mark: #fff3a8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  header h1 { margin: 0 0 4px; font-size: 24px; }
+  header p { margin: 0; color: var(--muted); }
+  .notice {
+    margin-top: 12px; padding: 8px 12px; border-radius: 8px;
+    background: var(--brand-soft); color: #23408f; font-size: 13px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; margin-top: 16px;
+  }
+  .card h2 { margin: 0 0 12px; font-size: 17px; }
+  .file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .file-btn {
+    display: inline-block; padding: 10px 18px; border-radius: 8px;
+    background: var(--brand); color: #fff; font-weight: bold; cursor: pointer;
+  }
+  .file-btn:hover { filter: brightness(1.08); }
+  #fileInput { display: none; }
+  #fileName { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid var(--line); padding: 10px 12px; vertical-align: top; text-align: left; }
+  th { background: #eef1f6; font-size: 14px; }
+  td.page { width: 70px; text-align: center; white-space: nowrap; font-weight: bold; }
+  td.said { width: 38%; }
+  .rule-tag {
+    display: inline-block; margin-bottom: 4px; padding: 1px 8px; border-radius: 999px;
+    background: var(--bad-soft); color: var(--bad); font-size: 12px; font-weight: bold;
+  }
+  .basis { font-weight: bold; }
+  .original { margin: 4px 0; padding-left: 10px; border-left: 3px solid var(--line); color: #333; }
+  .action { color: var(--bad); font-weight: bold; }
+  .note { color: var(--muted); font-size: 13px; }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; }
+
+  .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 16px; transition: .15s; }
+  .drop.over { border-color: var(--brand); background: var(--brand-soft); }
+  .drop small { display: block; margin-top: 8px; color: var(--muted); }
+  .samples { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .samples-label { color: var(--muted); font-size: 13px; margin-right: 4px; }
+  .sample-btn {
+    padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: #fff; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .sample-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+  .summary { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .count-box {
+    min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    background: #eef1f6; color: var(--muted);
+  }
+  .count-box .label { font-size: 14px; }
+  .count-box .num { font-size: 36px; font-weight: bold; line-height: 1.2; }
+  .count-box.bad { background: var(--bad-soft); color: var(--bad); }
+  .count-box.good { background: var(--good-soft); color: var(--good); }
+  .summary-text { color: var(--muted); }
+  .warn {
+    margin-top: 8px; padding: 6px 10px; border-radius: 6px;
+    background: #fff4e0; color: #8a5a00; font-size: 13px; font-weight: bold;
+  }
+
+  td.page a { color: var(--brand); text-decoration: none; }
+  td.page a:hover { text-decoration: underline; }
+  .source { max-height: 520px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 0; }
+  .src-page { margin: 10px 14px 4px; font-size: 12px; font-weight: bold; color: var(--muted); }
+  .src-line { padding: 2px 14px; border-left: 4px solid transparent; white-space: pre-wrap; }
+  .src-line.flag { border-left-color: var(--bad); background: #fff7f7; }
+  .src-line.mark { background: var(--mark); animation: blink 1.2s ease-out; }
+  @keyframes blink { 0% { background: #ffe14d; } 100% { background: var(--mark); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>RFP 닥터 <small style="font-size:15px;color:var(--muted);font-weight:normal">제안요청서 검토 도우미</small></h1>
+    <p>요청부서가 보낸 제안요청서를 넣으면, 규칙에 어긋나는 곳을 찾아 표로 보여 줍니다.</p>
+    <div class="notice">연습용 버전 · 판단 기준은 연습용 가상 규칙 6가지입니다 · 넣은 문서는 저장되지 않고 이 컴퓨터 밖으로 나가지 않습니다.</div>
+  </header>
+
+  <!-- 파일 선택 -->
+  <section class="card">
+    <h2>1. 제안요청서 넣기</h2>
+    <div class="drop" id="dropZone">
+      <div class="file-row">
+        <label class="file-btn" for="fileInput">파일 선택</label>
+        <input id="fileInput" type="file" accept=".txt,.pdf">
+        <span id="fileName">아직 선택한 파일이 없습니다.</span>
+      </div>
+      <small>파일을 이 칸에 끌어다 놓아도 됩니다. · 글 파일(.txt) 또는 PDF(.pdf) · 스캔한 PDF는 읽지 못합니다</small>
+    </div>
+    <div class="samples">
+      <span class="samples-label">연습 문서로 해 보기</span>
+      <button type="button" class="sample-btn" data-sample="가상제안요청서_A_민원안내시스템.pdf">A · 잘못 3개</button>
+      <button type="button" class="sample-btn" data-sample="가상제안요청서_B_홈페이지유지관리.pdf">B · 잘못 3개</button>
+      <button type="button" class="sample-btn" data-sample="가상제안요청서_C_교육콘텐츠제작.pdf">C · 정상 문서</button>
+      <button type="button" class="sample-btn" data-sample="가상제안요청서_D_경계값.txt">D · 경계값</button>
+    </div>
+  </section>
+
+  <!-- 요약 칸 -->
+  <section class="card">
+    <div class="summary">
+      <div class="count-box" id="countBox">
+        <div class="label">잘못된 곳</div>
+        <div class="num" id="countNum">–</div>
+      </div>
+      <div class="summary-text" id="summaryText">파일을 넣으면 잘못된 곳이 몇 개인지 바로 보여 줍니다.</div>
+    </div>
+  </section>
+
+  <!-- 결과 표 -->
+  <section class="card">
+    <h2>2. 검토 결과</h2>
+    <table>
+      <thead>
+        <tr><th>쪽</th><th>요청부서 내용</th><th>법령 원문과 조치</th></tr>
+      </thead>
+      <tbody id="resultBody">
+        <tr><td colspan="3" class="empty">파일을 넣으면 여기에 결과가 나옵니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 원문 보기 -->
+  <section class="card">
+    <h2>3. 원문 보기 <span class="note">— 표의 쪽↗을 누르면 그 부분이 노란색으로 표시됩니다</span></h2>
+    <div class="source" id="source"><div class="empty">파일을 넣으면 원문이 여기에 나옵니다.</div></div>
+  </section>
+</div>
+
+<!-- PDF 글자 꺼내기용 pdf.js (worker를 먼저 불러 두면 더블클릭으로 열어도 작동) -->
+<script src="lib/pdf.worker.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script src="rules.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "lib/pdf.worker.min.js";
+  // ── 문서 읽기: 줄마다 쪽과 장(제목) 정보를 붙인다 ──
+  function parseDocument(text) {
+    const lines = [];
+    let page = 1;
+    let section = "";
+    let hasPages = false;
+    text.split(/\r?\n/).forEach((raw) => {
+      let t = raw;
+      const pageMark = t.match(/^\s*\[(\d+)\s*쪽\]\s*/);
+      if (pageMark) {
+        page = +pageMark[1];
+        hasPages = true;
+        t = t.slice(pageMark[0].length);
+      }
+      if (!t.trim()) return;
+      const isHeading = /^\d+\.\s/.test(t);
+      if (isHeading) section = t.trim();
+      lines.push({ index: lines.length, text: t.trim(), page, section, isHeading });
+    });
+    // 예산은 문서마다 부르는 말이 달라서 여러 말로 찾고, 금액이 적힌 첫 줄을 쓴다
+    const budgetWords = /사업\s*예산|예산|사업비|추정\s*가격|사업\s*금액|예정\s*가격|기초\s*금액/;
+    let budget = null;
+    for (const l of lines) {
+      const m = l.text.match(budgetWords);
+      if (!m) continue;
+      budget = parseWon(l.text.slice(m.index + m[0].length));
+      if (budget != null) break;
+    }
+    return { lines, fullText: text, budget, hasPages };
+  }
+
+  // ── 검사하기: 규칙마다 걸리는 줄을 모아 쪽 순서로 정리 ──
+  function checkDocument(doc) {
+    const findings = [];
+    RULES.forEach((rule) => {
+      rule.find(doc).forEach((hit) => findings.push({ rule, line: hit.line, note: hit.note }));
+    });
+    findings.sort((a, b) => a.line.index - b.line.index || a.rule.id - b.rule.id);
+    return findings;
+  }
+
+  // ── 결과 표 ──
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  function renderTable(findings) {
+    const body = document.getElementById("resultBody");
+    if (!findings.length) {
+      body.innerHTML = '<tr><td colspan="3" class="empty">규칙에 어긋나는 곳을 찾지 못했습니다.</td></tr>';
+      return;
+    }
+    body.innerHTML = findings.map((f) => `
+      <tr>
+        <td class="page"><a href="#line-${f.line.index}" data-line="${f.line.index}" title="원문에서 보기">${f.line.page}쪽 ↗</a></td>
+        <td class="said">
+          <span class="rule-tag">${escapeHtml(f.rule.title)}</span><br>
+          ${escapeHtml(f.line.text)}
+          ${f.note ? `<div class="note">※ ${escapeHtml(f.note)}</div>` : ""}
+        </td>
+        <td>
+          <div class="basis">${escapeHtml(f.rule.basis)}</div>
+          <div class="original">${escapeHtml(f.rule.original)}</div>
+          <div class="action">→ ${escapeHtml(f.rule.action)}</div>
+        </td>
+      </tr>`).join("");
+  }
+
+  // ── 파일 읽기 (UTF-8이 아니면 한국어 옛 인코딩으로 다시 읽기) ──
+  async function readText(file) {
+    const buf = await file.arrayBuffer();
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(buf);
+    } catch {
+      return new TextDecoder("euc-kr").decode(buf);
+    }
+  }
+
+  // ── 요약 칸 ──
+  function renderSummary(findings, doc) {
+    const box = document.getElementById("countBox");
+    document.getElementById("countNum").textContent = `${findings.length}개`;
+    box.className = "count-box " + (findings.length ? "bad" : "good");
+    const pages = [...new Set(findings.map((f) => f.line.page))].map((p) => `${p}쪽`).join(", ");
+    const budget = doc.budget != null ? `사업 예산 ${formatWon(doc.budget)}` : "사업 예산을 찾지 못함";
+    const warn = doc.budget == null
+      ? `<div class="warn">⚠ 문서에서 사업 예산(사업비·추정가격)을 찾지 못해 '기준금액 미만 사업의 실적 제한'은 검사하지 못했습니다. 이 부분은 직접 확인해 주세요.</div>`
+      : "";
+    const pageNote = !doc.hasPages && findings.length
+      ? `<div class="note">※ 쪽 표시가 없는 파일이라 쪽은 모두 1쪽으로 나옵니다. 위치는 원문 보기의 노란 표시로 확인해 주세요.</div>`
+      : "";
+    document.getElementById("summaryText").innerHTML = (findings.length
+      ? `${escapeHtml(pages)}에서 고칠 곳이 나왔습니다.<br><span class="note">${escapeHtml(budget)} · 연습용 규칙 ${RULES.length}가지로 검사</span>`
+      : `규칙에 어긋나는 곳이 없습니다.<br><span class="note">${escapeHtml(budget)} · 연습용 규칙 ${RULES.length}가지로 검사</span>`) + warn + pageNote;
+  }
+
+  // ── 원문 보기: 걸린 줄은 빨간 줄로, 쪽↗을 누른 줄은 노란색으로 ──
+  function renderSource(doc, findings) {
+    const flagged = new Set(findings.map((f) => f.line.index));
+    let lastPage = null;
+    document.getElementById("source").innerHTML = doc.lines.map((l) => {
+      const pageHead = l.page !== lastPage ? `<div class="src-page">[${l.page}쪽]</div>` : "";
+      lastPage = l.page;
+      return `${pageHead}<div class="src-line${flagged.has(l.index) ? " flag" : ""}" id="line-${l.index}">${escapeHtml(l.text)}</div>`;
+    }).join("");
+  }
+
+  function showLine(index) {
+    document.querySelectorAll(".src-line.mark").forEach((el) => el.classList.remove("mark"));
+    const el = document.getElementById(`line-${index}`);
+    if (!el) return;
+    el.classList.add("mark");
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("resultBody").addEventListener("click", (e) => {
+    const link = e.target.closest("a[data-line]");
+    if (!link) return;
+    e.preventDefault();
+    showLine(+link.dataset.line);
+  });
+
+  // ── PDF 읽기: 실제 쪽마다 [N쪽] 표시를 붙여 글 파일과 같은 모양으로 만든다 ──
+  async function readPdf(file) {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const pages = [];
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const content = await (await pdf.getPage(n)).getTextContent();
+      let text = "";
+      let lastY = null;
+      content.items.forEach((item) => {
+        const y = item.transform ? Math.round(item.transform[5]) : lastY;
+        if (lastY !== null && y !== null && Math.abs(y - lastY) > 2 && !text.endsWith("\n")) text += "\n";
+        text += item.str;
+        if (item.hasEOL) text += "\n";
+        lastY = y;
+      });
+      // 원래 문서에 적힌 [N쪽] 글자는 지우고 PDF의 실제 쪽 번호를 쓴다
+      text = text.replace(/^\s*\[\d+\s*쪽\]\s*/gm, "");
+      pages.push(`[${n}쪽]\n${text}`);
+    }
+    return pages.join("\n");
+  }
+
+  function showError(message) {
+    document.getElementById("countNum").textContent = "–";
+    document.getElementById("countBox").className = "count-box";
+    document.getElementById("summaryText").textContent = message;
+    document.getElementById("resultBody").innerHTML = '<tr><td colspan="3" class="empty">결과가 없습니다.</td></tr>';
+    document.getElementById("source").innerHTML = "";
+  }
+
+  async function handleFile(file) {
+    if (!file) return;
+    document.getElementById("fileName").textContent = file.name;
+    const isPdf = /\.pdf$/i.test(file.name) || file.type === "application/pdf";
+    const isTxt = /\.txt$/i.test(file.name) || file.type === "text/plain";
+    if (!isPdf && !isTxt) {
+      showError("지원하지 않는 파일 형식입니다. 글 파일(.txt)이나 PDF만 넣을 수 있어요. 한글 파일은 한글에서 [PDF로 저장]한 뒤 넣어 주세요.");
+      return;
+    }
+    let text;
+    try {
+      text = isPdf ? await readPdf(file) : await readText(file);
+    } catch (err) {
+      showError("파일을 읽지 못했습니다. 글 파일(.txt)이나 PDF인지 확인해 주세요.");
+      return;
+    }
+    if (!text.replace(/\[\d+쪽\]/g, "").trim()) {
+      showError("파일에서 글자를 찾지 못했습니다. 스캔한 PDF라면 한글에서 [PDF로 저장]한 파일로 다시 넣어 주세요.");
+      return;
+    }
+    const doc = parseDocument(text);
+    const findings = checkDocument(doc);
+    renderSummary(findings, doc);
+    renderTable(findings);
+    renderSource(doc, findings);
+  }
+
+  document.getElementById("fileInput").addEventListener("change", (e) => handleFile(e.target.files[0]));
+
+  // ── 끌어다 놓기 ──
+  const dropZone = document.getElementById("dropZone");
+  ["dragenter", "dragover"].forEach((ev) =>
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.remove("over"); }));
+  dropZone.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+
+  // ── 연습 문서 버튼: 웹 주소로 열었을 때 같은 주소의 연습자료 폴더에서 불러온다 ──
+  // 배포본은 연습자료가 index.html 옆에, 내 컴퓨터 폴더는 한 칸 위에 있어서 두 곳을 차례로 찾는다
+  async function loadSample(name) {
+    if (location.protocol === "file:") {
+      showError("연습 문서 버튼은 웹 주소로 열었을 때만 작동합니다. 내 컴퓨터에서는 연습자료 폴더의 파일을 끌어다 놓아 주세요.");
+      return;
+    }
+    for (const dir of ["연습자료/", "../연습자료/"]) {
+      try {
+        const res = await fetch(dir + encodeURIComponent(name));
+        if (!res.ok) continue;
+        await handleFile(new File([await res.blob()], name));
+        return;
+      } catch { /* 다음 위치에서 찾기 */ }
+    }
+    showError("연습 문서를 불러오지 못했습니다. 잠시 뒤 다시 눌러 주세요.");
+  }
+
+  document.querySelectorAll(".sample-btn").forEach((btn) =>
+    btn.addEventListener("click", () => loadSample(btn.dataset.sample)));
+</script>
+</body>
+</html>
