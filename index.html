@@ -3,20 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RFP 닥터 · 제안요청서 검토 도우미</title>
+<title>계약업무를 쉽게 "제안요청서" 매니저</title>
 <style>
   :root {
-    --bg: #f4f6fa;
+    --bg: #f5f7f4;
     --card: #ffffff;
-    --ink: #1f2733;
-    --muted: #5d6878;
-    --line: #dde2ea;
-    --brand: #2f5bd3;
-    --brand-soft: #e8eefc;
-    --bad: #c62f2f;
+    --ink: #333333;
+    --muted: #666f66;
+    --line: #dfe5dc;
+    --brand: #008237;
+    --brand-dark: #006a2d;
+    --brand-soft: #e9f5ec;
+    --accent: #8cc63f;
+    --bad: #d13030;
     --bad-soft: #fdecec;
-    --good: #1f8a4c;
-    --good-soft: #e7f6ed;
+    --good: #158c47;
+    --good-soft: #e9f5ec;
     --mark: #fff3a8;
   }
   * { box-sizing: border-box; }
@@ -24,34 +26,46 @@
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
+    font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
     font-size: 15px;
     line-height: 1.6;
   }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
-  header h1 { margin: 0 0 4px; font-size: 24px; }
-  header p { margin: 0; color: var(--muted); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 48px; }
+  .topbar { background: #fff; color: var(--ink); border-bottom: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .topbar .inner {
+    max-width: 1100px; margin: 0 auto; padding: 22px 16px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .topbar .logo { height: 64px; width: auto; flex-shrink: 0; }
+  @media (max-width: 640px) { .topbar .logo { height: 44px; } }
+  .topbar .eyebrow { margin: 0; font-size: 15px; font-weight: bold; color: var(--brand); }
+  .topbar .eyebrow::before {
+    content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px;
+    border-radius: 50%; background: var(--accent);
+  }
+  .topbar h1 { margin: 2px 0 6px; font-size: 30px; line-height: 1.25; color: #222; }
+  .topbar .desc { margin: 0; color: var(--muted); }
   .notice {
-    margin-top: 12px; padding: 8px 12px; border-radius: 8px;
-    background: var(--brand-soft); color: #23408f; font-size: 13px;
+    margin-top: 16px; padding: 8px 14px; border-radius: 999px;
+    background: var(--brand-soft); color: var(--brand-dark); font-size: 13px;
   }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: 12px;
     padding: 18px 20px; margin-top: 16px;
   }
-  .card h2 { margin: 0 0 12px; font-size: 17px; }
+  .card h2 { margin: 0 0 12px; font-size: 17px; padding-left: 10px; border-left: 4px solid var(--brand); }
   .file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .file-btn {
-    display: inline-block; padding: 10px 18px; border-radius: 8px;
+    display: inline-block; padding: 10px 24px; border-radius: 999px;
     background: var(--brand); color: #fff; font-weight: bold; cursor: pointer;
   }
-  .file-btn:hover { filter: brightness(1.08); }
+  .file-btn:hover { background: var(--brand-dark); }
   #fileInput { display: none; }
   #fileName { color: var(--muted); }
 
   table { width: 100%; border-collapse: collapse; }
   th, td { border: 1px solid var(--line); padding: 10px 12px; vertical-align: top; text-align: left; }
-  th { background: #eef1f6; font-size: 14px; }
+  th { background: var(--brand-soft); color: var(--brand-dark); font-size: 14px; }
   td.page { width: 70px; text-align: center; white-space: nowrap; font-weight: bold; }
   td.said { width: 38%; }
   .rule-tag {
@@ -67,18 +81,11 @@
   .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 16px; transition: .15s; }
   .drop.over { border-color: var(--brand); background: var(--brand-soft); }
   .drop small { display: block; margin-top: 8px; color: var(--muted); }
-  .samples { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .samples-label { color: var(--muted); font-size: 13px; margin-right: 4px; }
-  .sample-btn {
-    padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
-    background: #fff; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer;
-  }
-  .sample-btn:hover { border-color: var(--brand); color: var(--brand); }
 
   .summary { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .count-box {
     min-width: 200px; padding: 14px 20px; border-radius: 12px;
-    background: #eef1f6; color: var(--muted);
+    background: #eef2ec; color: var(--muted);
   }
   .count-box .label { font-size: 14px; }
   .count-box .num { font-size: 36px; font-weight: bold; line-height: 1.2; }
@@ -101,12 +108,18 @@
 </style>
 </head>
 <body>
+<header class="topbar">
+  <div class="inner">
+    <div>
+      <p class="eyebrow">계약업무를 쉽게</p>
+      <h1>"제안요청서" 매니저</h1>
+      <p class="desc">요청부서가 보낸 제안요청서를 넣으면, 규칙에 어긋나는 곳을 찾아 표로 보여 줍니다.</p>
+    </div>
+    <img class="logo" src="logo.png" alt="한국석유관리원">
+  </div>
+</header>
 <div class="wrap">
-  <header>
-    <h1>RFP 닥터 <small style="font-size:15px;color:var(--muted);font-weight:normal">제안요청서 검토 도우미</small></h1>
-    <p>요청부서가 보낸 제안요청서를 넣으면, 규칙에 어긋나는 곳을 찾아 표로 보여 줍니다.</p>
-    <div class="notice">연습용 버전 · 판단 기준은 연습용 가상 규칙 6가지입니다 · 넣은 문서는 저장되지 않고 이 컴퓨터 밖으로 나가지 않습니다.</div>
-  </header>
+  <div class="notice">연습용 버전 · 판단 기준은 연습용 가상 규칙 6가지입니다 · 넣은 문서는 저장되지 않고 이 컴퓨터 밖으로 나가지 않습니다.</div>
 
   <!-- 파일 선택 -->
   <section class="card">
@@ -118,13 +131,6 @@
         <span id="fileName">아직 선택한 파일이 없습니다.</span>
       </div>
       <small>파일을 이 칸에 끌어다 놓아도 됩니다. · 글 파일(.txt) 또는 PDF(.pdf) · 스캔한 PDF는 읽지 못합니다</small>
-    </div>
-    <div class="samples">
-      <span class="samples-label">연습 문서로 해 보기</span>
-      <button type="button" class="sample-btn" data-sample="가상제안요청서_A_민원안내시스템.pdf">A · 잘못 3개</button>
-      <button type="button" class="sample-btn" data-sample="가상제안요청서_B_홈페이지유지관리.pdf">B · 잘못 3개</button>
-      <button type="button" class="sample-btn" data-sample="가상제안요청서_C_교육콘텐츠제작.pdf">C · 정상 문서</button>
-      <button type="button" class="sample-btn" data-sample="가상제안요청서_D_경계값.txt">D · 경계값</button>
     </div>
   </section>
 
@@ -353,27 +359,6 @@
   ["dragleave", "drop"].forEach((ev) =>
     dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.remove("over"); }));
   dropZone.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
-
-  // ── 연습 문서 버튼: 웹 주소로 열었을 때 같은 주소의 연습자료 폴더에서 불러온다 ──
-  // 배포본은 연습자료가 index.html 옆에, 내 컴퓨터 폴더는 한 칸 위에 있어서 두 곳을 차례로 찾는다
-  async function loadSample(name) {
-    if (location.protocol === "file:") {
-      showError("연습 문서 버튼은 웹 주소로 열었을 때만 작동합니다. 내 컴퓨터에서는 연습자료 폴더의 파일을 끌어다 놓아 주세요.");
-      return;
-    }
-    for (const dir of ["연습자료/", "../연습자료/"]) {
-      try {
-        const res = await fetch(dir + encodeURIComponent(name));
-        if (!res.ok) continue;
-        await handleFile(new File([await res.blob()], name));
-        return;
-      } catch { /* 다음 위치에서 찾기 */ }
-    }
-    showError("연습 문서를 불러오지 못했습니다. 잠시 뒤 다시 눌러 주세요.");
-  }
-
-  document.querySelectorAll(".sample-btn").forEach((btn) =>
-    btn.addEventListener("click", () => loadSample(btn.dataset.sample)));
 </script>
 </body>
 </html>
